@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import static java.util.Arrays.asList;
 
 enum ProductType{
     GOOD,
@@ -154,21 +155,91 @@ public class Main {
         CustomerService cS = new CustomerService();
         OrderService oS = new OrderService();
 
-        ProductRepository pR = new ProductRepository();
-        CustomerRepository cR = new CustomerRepository();
-        OrderRepository oR = new OrderRepository();
+        ProductRepository pR= new ProductRepository();
+        CustomerRepository cR= new CustomerRepository();
+        OrderRepository oR= new OrderRepository();
 
-        pS.save(new Product(UUID.randomUUID().toString(), "Шоколадный батончик", 70, ProductType.GOOD));
-        pS.save(new Product(UUID.randomUUID().toString(), "Молоко 1л", 80, ProductType.GOOD));
-        pS.save(new Product(UUID.randomUUID().toString(), "Батон", 31, ProductType.GOOD));
-        pS.save(new Product(UUID.randomUUID().toString(), "Ремонт холодильника", 3000, ProductType.SERVICE));
-        pS.save(new Product(UUID.randomUUID().toString(), "Настрока интернета", 500, ProductType.SERVICE));
-        pS.save(new Product(UUID.randomUUID().toString(), "Ремонт обуви", 400, ProductType.GOOD));
+        Product chocolate = new Product(UUID.randomUUID().toString(), "Шоколадный батончик", 70, ProductType.GOOD);
+        pS.save(chocolate);
 
-        cS.save(new Customer(UUID.randomUUID().toString(), "Таштимиров Булат", "89123456789", 19));
-        cS.save(new Customer(UUID.randomUUID().toString(), "Кашапов Айдар", "89987654321", 19));
-        cS.save(new Customer(UUID.randomUUID().toString(), "Валитов Арслан", "89981237645", 19));
+        Product milk = new Product(UUID.randomUUID().toString(), "Молоко 1л", 80, ProductType.GOOD);
+        pS.save(milk);
 
-        oS.add(new Order());
+        Product loaf = new Product(UUID.randomUUID().toString(), "Батон", 31, ProductType.GOOD);
+        pS.save(loaf);
+
+        Product refrigeratorRepair = new Product(UUID.randomUUID().toString(), "Ремонт холодильника", 3000, ProductType.SERVICE);
+        pS.save(refrigeratorRepair);
+
+        Product internetSetup = new Product(UUID.randomUUID().toString(), "Настройка интернета", 500, ProductType.SERVICE);
+        pS.save(internetSetup);
+
+        Product shoeRepair = new Product(UUID.randomUUID().toString(), "Ремонт обуви", 400, ProductType.SERVICE);
+        pS.save(shoeRepair);
+
+
+        Customer bulat = new Customer(UUID.randomUUID().toString(), "Таштимиров Булат", "89123456789", 19);
+        cS.save(bulat);
+
+        Customer aidar = new Customer(UUID.randomUUID().toString(), "Кашапов Айдар", "89987654321", 19);
+        cS.save(aidar);
+
+        Customer arslan = new Customer(UUID.randomUUID().toString(), "Валитов Арслан", "89981237645", 19);
+        cS.save(arslan);
+
+
+        oS.add(aidar, chocolate, 1);
+        oS.add(bulat, refrigeratorRepair, 1);
+        oS.add(arslan, shoeRepair, 50);
+        oS.add(arslan, milk, 4);
+
+        for(var i: oS.findAll()){
+            try{
+                oS.badOrderCount(i);
+            } catch (BadOrderCountException e){
+                System.out.println("count cannot be less than or equal to 0");
+            }
+        }
+
+        int cnt=0;
+        for(var i: cS.findAll()){
+            cnt++;
+        }
+        System.out.println("Количество покупателей: " + cnt);
+        cnt =0;
+
+        for(var i: oS.findAll()){
+            cnt++;
+        }
+        System.out.println("Количество заказов: " + cnt);
+
+        int cnt1=0;
+
+        for(var i: oS.findAll()){
+            for(var j: pS.findByProductType(ProductType.GOOD)){
+                if(i.productId().equals(j.id()))
+                    cnt1++;
+            }
+        }
+        System.out.println("Количество заказов из категории \"Товары\": " + cnt1);
+        System.out.println("Количество заказов из категории \"Услуги\": " + (cnt-cnt1));
+        cnt =0;
+        cnt1=0;
+
+        for(var i: cS.findAll()){
+            for(var j: oS.findByCustomer(i)){
+                cnt++;
+            }
+            System.out.println("Количество заказов " + i.name() + ": " + cnt);
+            cnt =0;
+        }
+
+        for(var i: cS.findAll()){
+            for(var j: oS.findByCustomer(i)){
+                cnt+=j.amount();
+            }
+            System.out.println("К оплате для " + i.name() + ": " + cnt);
+            cnt =0;
+        }
     }
 }
